@@ -17,7 +17,7 @@ EOT
     resource_group_name = string
     ttl                 = number
     zone_name           = string
-    name                = optional(string, "@")
+    name                = optional(string) # Default: "@"
     tags                = optional(map(string))
     record = object({
       exchange   = string
