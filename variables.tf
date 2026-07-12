@@ -19,35 +19,11 @@ EOT
     zone_name           = string
     name                = optional(string) # Default: "@"
     tags                = optional(map(string))
-    record = object({
+    record = list(object({
       exchange   = string
       preference = number
-    })
+    }))
   }))
-  validation {
-    condition = alltrue([
-      for k, v in var.private_dns_mx_records : (
-        length(v.zone_name) > 0
-      )
-    ])
-    error_message = "must not be empty"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.private_dns_mx_records : (
-        v.record.preference >= 0 && v.record.preference <= 65535
-      )
-    ])
-    error_message = "must be between 0 and 65535"
-  }
-  validation {
-    condition = alltrue([
-      for k, v in var.private_dns_mx_records : (
-        length(v.record.exchange) > 0
-      )
-    ])
-    error_message = "must not be empty"
-  }
   # --- Unconfirmed validation candidates, derived from azurerm_private_dns_mx_record's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
   # or a path that crosses a list-typed block (needs its own for_each wrapping).
@@ -68,6 +44,15 @@ EOT
   #   source:    [from resourcegroups.ValidateName: invalid when len(value) == 0]
   # path: resource_group_name
   #   source:    [from resourcegroups.ValidateName] !matched
+  # path: zone_name
+  #   condition: length(value) > 0
+  #   message:   must not be empty
+  # path: record.preference
+  #   condition: value >= 0 && value <= 65535
+  #   message:   must be between 0 and 65535
+  # path: record.exchange
+  #   condition: length(value) > 0
+  #   message:   must not be empty
   # path: ttl
   #   source:    validation.IntBetween(1, math.MaxInt32) - bound(s) not a literal int (e.g. a named constant like math.MaxInt32) - resolve manually
   # path: tags
