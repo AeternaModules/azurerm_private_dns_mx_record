@@ -17,13 +17,21 @@ EOT
     resource_group_name = string
     ttl                 = number
     zone_name           = string
-    name                = optional(string) # Default: "@"
+    name                = optional(string)
     tags                = optional(map(string))
     record = list(object({
       exchange   = string
       preference = number
     }))
   }))
+  validation {
+    condition = alltrue([
+      for k, v in var.private_dns_mx_records : (
+        length(v.record) >= 1
+      )
+    ])
+    error_message = "Each record list must contain at least 1 items"
+  }
   # --- Unconfirmed validation candidates, derived from azurerm_private_dns_mx_record's provider source ---
   # Not auto-enabled: either a bespoke provider validator we can't safely translate,
   # or a path that crosses a list-typed block (needs its own for_each wrapping).
